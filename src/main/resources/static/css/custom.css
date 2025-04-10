@@ -1,0 +1,81 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.navbar-brand {
+    font-weight: bold;
+}
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+/* Zaokrąglone rogi kart i przycisków */
+.card, .btn {
+    border-radius: 8px;
+    transition: transform 0.2s;
+
+}
+footer {
+    margin-top: 2rem;
+    padding: 1rem 0;
+    background-color: #343a40;
+    color: #fff;
+    text-align: center;
+}
+/* Hover na przyciskach */
+.btn:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease-in-out;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+
+}
+/* Ulepszony wygląd nagłówka strony */
+header.jumbotron {
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://source.unsplash.com/1600x400/?hotel') no-repeat center center;
+    background-size: cover;
+
+}
+.dark-mode {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
+.dark-mode .navbar,
+.dark-mode .footer {
+    background-color: #212529 !important;
+}
+
+.dark-mode .card {
+    background-color: #495057;
+    color: #f8f9fa;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+.card img {
+    height: 220px;
+    object-fit: cover;
+}
+
+.jumbotron {
+    background: url('https://source.unsplash.com/1600x500/?hotel,luxury') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+
+.jumbotron::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: rgba(0,0,0,0.5);
+}
+
+.jumbotron .container {
+    position: relative;
+    z-index: 2;
+}
+
+footer {
+    background-color: #f8f9fa;
+    padding: 20px;
+    margin-top: 50px;
+}
