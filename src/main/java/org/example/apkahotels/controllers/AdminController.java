@@ -146,6 +146,7 @@ public class AdminController {
     }
 
 
+
     // Zapis nowego hotelu (lub aktualizacja istniejącego)
     @PostMapping("/save")
     public String saveHotel(@ModelAttribute("hotel") Hotel hotel) {

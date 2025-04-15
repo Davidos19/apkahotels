@@ -1,11 +1,17 @@
 package org.example.apkahotels.services;
 
+import org.example.apkahotels.exceptions.HotelNotAvailableException;
+import org.example.apkahotels.exceptions.InvalidReservationDateException;
 import org.example.apkahotels.models.Hotel;
 import org.example.apkahotels.models.Reservation;
 import org.example.apkahotels.repositories.HotelRepository;
 import org.example.apkahotels.repositories.ReservationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReservationService {
+    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
+
     // Możesz usunąć lokalną listę, jeśli korzystasz z repository:
     // private List<Reservation> reservations = new ArrayList<>();
 
@@ -69,26 +77,39 @@ public class ReservationService {
     }
 
     public void makeReservation(Reservation reservation) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (reservation.getUsername() == null || reservation.getUsername().trim().isEmpty()) {
-            reservation.setUsername(userService.getCurrentUser().getUsername());
+        logger.info("Próba utworzenia rezerwacji dla hotelu id: {}", reservation.getHotelId());
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (reservation.getUsername() == null || reservation.getUsername().trim().isEmpty()) {
+                reservation.setUsername(userService.getCurrentUser().getUsername());
+            }
+        } catch (Exception ex) {
+            logger.error("Błąd przy tworzeniu rezerwacji: {}", ex.getMessage());
+            throw ex;
         }
-
 
         if (reservation.getCheckIn().isAfter(reservation.getCheckOut())) {
-            throw new RuntimeException("Data przyjazdu musi być przed datą wyjazdu!");
+            throw new InvalidReservationDateException("Data przyjazdu musi być przed datą wyjazdu!");
         }
         if (reservation.getCheckIn().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Data przyjazdu nie może być w przeszłości!");
+            throw new InvalidReservationDateException("Data przyjazdu nie może być w przeszłości!");
         }
+
+        // Nowa weryfikacja dostępności pokoju pod kątem kolidujących rezerwacji
+        if (!isRoomAvailable(reservation)) {
+            throw new RuntimeException("Wybrany pokój jest już zarezerwowany w wybranym terminie!");
+        }
+
         Hotel hotel = hotelRepository.getHotelById(reservation.getHotelId());
         if (hotel != null && hotel.getAvailableRooms() > 0) {
             hotel.setAvailableRooms(hotel.getAvailableRooms() - 1);
             reservationRepository.addReservation(reservation);
         } else {
-            throw new RuntimeException("Brak dostępnych pokoi!");
+            throw new HotelNotAvailableException("Brak dostępnych pokoi!");
         }
     }
+
+
 
     public void updateReservation(Reservation updatedReservation) {
         Reservation existing = reservationRepository.getReservationById(updatedReservation.getId());
@@ -108,6 +129,18 @@ public class ReservationService {
             existing.setCheckOut(updatedReservation.getCheckOut());
         }
     }
+
+    private boolean isRoomAvailable(Reservation newReservation) {
+        return reservationRepository.getAllReservations().stream()
+                // Zakładam, że używasz pola roomId – jeśli jest to inna właściwość identyfikująca dany pokój, zmień to odpowiednio
+                .filter(existing -> existing.getRoomId().equals(newReservation.getRoomId()))
+                // Warunek sprawdzający kolizję przedziałów czasowych:
+                // Nowa rezerwacja koliduje z istniejącą, jeżeli jej data checkIn jest przed końcem istniejącej rezerwacji
+                // oraz jej data checkOut jest po początku istniejącej rezerwacji
+                .noneMatch(existing -> newReservation.getCheckIn().isBefore(existing.getCheckOut())
+                        && newReservation.getCheckOut().isAfter(existing.getCheckIn()));
+    }
+
     public List<Reservation> getUserReservations() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return reservationRepository.getAllReservations().stream()

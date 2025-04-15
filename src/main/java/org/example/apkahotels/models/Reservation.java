@@ -1,9 +1,6 @@
 package org.example.apkahotels.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,7 +21,11 @@ public class Reservation {
 
     // Dodajemy pole do powiązania z pokojem
     private Long roomId;
+    @ManyToOne(optional = false)
+    private Room room;
 
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String username;
     private LocalDate checkIn;
     private LocalDate checkOut;

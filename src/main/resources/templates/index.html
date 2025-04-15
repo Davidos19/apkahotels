@@ -5,7 +5,12 @@
 
     <meta charset="UTF-8">
     <title>Hotel Reservation</title>
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
     <!-- Motyw Bootswatch, np. Cerulean -->
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/lux/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -32,6 +37,7 @@
         <p class="lead">Znajdź idealny hotel i dokonaj rezerwacji online</p>
     </div>
 </header>
+
 
 <!-- Karuzela z promocjami -->
 <div class="container mb-4">
@@ -122,29 +128,50 @@
     document.addEventListener('DOMContentLoaded', function() {
         const hotelSelect = document.getElementById('hotelSelect');
         const roomSelect = document.getElementById('roomSelect');
+        const statusMessage = document.createElement('div');
+        statusMessage.setAttribute('id', 'statusMessage');
+        hotelSelect.parentElement.appendChild(statusMessage);
 
         hotelSelect.addEventListener('change', function() {
             const hotelId = this.value;
             if (hotelId) {
-                // Wywołaj endpoint REST, np. /api/hotels/{hotelId}/rooms
+                statusMessage.textContent = 'Ładowanie pokoi...';
                 fetch(`/api/hotels/${hotelId}/rooms`)
                     .then(response => response.json())
                     .then(data => {
-                        // Wyczyść poprzednie opcje
                         roomSelect.innerHTML = '<option value="" disabled selected>-- Wybierz pokój --</option>';
-                        // Dodaj nowe opcje na podstawie otrzymanego JSON
                         data.forEach(room => {
                             const option = document.createElement('option');
-                            option.value = room.id;  // roomId
+                            option.value = room.id;
                             option.text = `${room.roomType} - ${room.capacity} os. - ${room.price} PLN`;
                             roomSelect.appendChild(option);
                         });
+                        statusMessage.textContent = '';
                     })
-                    .catch(error => console.error('Błąd przy pobieraniu pokoi:', error));
+                    .catch(error => {
+                        console.error('Błąd przy pobieraniu pokoi:', error);
+                        statusMessage.textContent = 'Nie udało się pobrać danych pokoi. Spróbuj ponownie później.';
+                    });
             }
         });
     });
+
 </script>
+<!-- Przykład wyświetlania powiadomień -->
+<div class="container mt-2">
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${message}"></span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Zamknij">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Zamknij">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+</div>
 
 <!-- Formularz rezerwacji -->
 <div class="container mb-5">
@@ -181,6 +208,14 @@
 
         </div>
     </div>
+</div>
+<div class="container mb-4">
+    <button id="toggleCalendar" class="btn btn-primary">Pokaż/Ukryj kalendarz</button>
+</div>
+
+<!-- Kontener kalendarza – na początku ukryty -->
+<div id="calendarContainer" style="display: none; margin-bottom: 20px;">
+    <div id="calendar"></div>
 </div>
 
 <!-- Lista rezerwacji użytkownika -->
@@ -259,9 +294,105 @@
         }
     });
 </script>
+<script>document.addEventListener('DOMContentLoaded', function() {
+    const reservationForm = document.getElementById('reservationForm');
+    if (reservationForm) {
+        reservationForm.addEventListener('submit', function(e) {
+            const checkInField = document.getElementById('checkIn');
+            const checkOutField = document.getElementById('checkOut');
+            if (!checkInField || !checkOutField) return;
+
+            const checkInDate = new Date(checkInField.value);
+            const checkOutDate = new Date(checkOutField.value);
+
+            if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+                // Możemy sprawdzić, czy pola nie są puste
+                e.preventDefault();
+                toastr.error('Podaj poprawne daty!');
+                return;
+            }
+
+            if (checkInDate >= checkOutDate) {
+                e.preventDefault();
+                toastr.error('Data przyjazdu musi być wcześniejsza niż data wyjazdu!');
+            }
+        });
+    }
+});
+</script>
+<script th:inline="javascript">
+    var message = /*[[${message}]]*/ null;
+    var error = /*[[${error}]]*/ null;
+
+    if(message) {
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "timeOut": "3000"
+        };
+        toastr.success(message);
+    }
+    if(error) {
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "timeOut": "3000"
+        };
+        toastr.error(error);
+    }
+    /*]]>*/
+</script>
+
 
 <!-- Skrypty Bootstrap i jQuery -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Załaduj pełną wersję jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<!-- Załaduj Toastr -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- Opcjonalnie: Jeśli korzystasz z Bootstrap JS, możesz dodać później -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Dołącz FullCalendar JS w wersji 5.11.3 -->
+<!-- Upewnij się, że poniższe skrypty są ładowane tylko raz i po jQuery (jeśli korzystasz z niego) -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 600, // Ustawia wysokość kalendarza na 600 pikseli
+
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: {
+                url: '/api/reservations/calendar', // Twój endpoint REST
+                method: 'GET',
+                failure: function() {
+                    alert('Nie udało się pobrać rezerwacji!');
+                }
+            }
+        });
+        calendar.render();
+        // Podpięcie obsługi przycisku toggle
+        var toggleButton = document.getElementById('toggleCalendar');
+        toggleButton.addEventListener('click', function() {
+            var calendarContainer = document.getElementById('calendarContainer');
+            if (calendarContainer.style.display === "none" || calendarContainer.style.display === "") {
+                // Ustaw display na block i wywołaj updateSize() żeby kalendarz poprawnie dostosował rozmiar
+                calendarContainer.style.display = "block";
+                calendar.updateSize();  // Informuje kalendarz, że jego rozmiary mogły się zmienić
+            } else {
+                calendarContainer.style.display = "none";
+            }
+        });
+    });
+</script>
+
+
 </body>
 </html>
