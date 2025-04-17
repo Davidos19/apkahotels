@@ -76,6 +76,7 @@ public class ReservationService {
         }
     }
 
+
     public void makeReservation(Reservation reservation) {
         logger.info("Próba utworzenia rezerwacji dla hotelu id: {}", reservation.getHotelId());
         try {
@@ -130,6 +131,8 @@ public class ReservationService {
         }
     }
 
+
+
     private boolean isRoomAvailable(Reservation newReservation) {
         return reservationRepository.getAllReservations().stream()
                 // Zakładam, że używasz pola roomId – jeśli jest to inna właściwość identyfikująca dany pokój, zmień to odpowiednio
@@ -171,7 +174,9 @@ public class ReservationService {
 
         }
 
+
     }
+
     public List<Reservation> getReservationsByUsername(String username) {
         return reservationRepository.findByUsername(username);
     }

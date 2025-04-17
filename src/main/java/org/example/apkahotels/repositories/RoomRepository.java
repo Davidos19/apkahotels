@@ -19,7 +19,17 @@ public class RoomRepository {
 
         // Przykładowe pokoje dla hotelu o ID 2
         addRoom(new Room(null, 2L, "Standard", 2, 120.0, "https://source.unsplash.com/400x300/?standard,room", "201"));
-        addRoom(new Room(null, 2L, "Suite", 4, 400.0, "https://source.unsplash.com/400x300/?suite,room", "202"));
+        addRoom(new Room(null, 2L, "Suite", 4, 300.0, "https://source.unsplash.com/400x300/?suite,room", "202"));
+
+        addRoom(new Room(null, 3L, "Standard", 2, 150.0, "https://source.unsplash.com/400x300/?standard,room", "321"));
+        addRoom(new Room(null, 3L, "Suite", 4, 300.0, "https://source.unsplash.com/400x300/?suite,room", "321"));
+
+        addRoom(new Room(null, 4L, "Standard", 2, 170.0, "https://source.unsplash.com/400x300/?standard,room", "420"));
+        addRoom(new Room(null, 4L, "Deluxe", 4, 500.0, "https://source.unsplash.com/400x300/?suite,room", "444"));
+
+        addRoom(new Room(null, 5L, "Standard", 2, 220.0, "https://source.unsplash.com/400x300/?standard,room", "501"));
+        addRoom(new Room(null, 5L, "Deluxe", 4, 500.0, "https://source.unsplash.com/400x300/?suite,room", "588"));
+        addRoom(new Room(null, 2L, "Suite", 4, 300.0, "https://source.unsplash.com/400x300/?suite,room", "544"));
     }
 
 

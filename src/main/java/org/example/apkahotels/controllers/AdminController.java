@@ -166,16 +166,21 @@ public class AdminController {
         return "edit_hotel";
     }
 
-    @GetMapping("/admin/reservations/delete/{id}")
-    public String deleteReservation(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PostMapping("/{hotelId}/reservations/delete/{reservationId}")
+    public String deleteReservation(
+            @PathVariable Long hotelId,
+            @PathVariable Long reservationId,
+            RedirectAttributes redirectAttributes) {
         try {
-            reservationService.cancelReservation(id);
-            redirectAttributes.addFlashAttribute("message", "Rezerwacja została anulowana!");
+            // zamiast deleteReservation:
+            reservationService.cancelReservation(reservationId);
+            redirectAttributes.addFlashAttribute("message", "Rezerwacja została anulowana i pokój zwolniony!");
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("error", "Nie udało się anulować rezerwacji: " + ex.getMessage());
         }
-        return "redirect:/admin_hotel_reservations"; // lub inny widok z listą rezerwacji
+        return "redirect:/admin/hotels/" + hotelId + "/reservations";
     }
+
 
     // Usunięcie hotelu
     @GetMapping("/delete/{id}")
@@ -191,7 +196,6 @@ public class AdminController {
         }
 
         List<Reservation> reservations = reservationService.getReservationsByHotelId(id);
-        System.out.println("Rezerwacje: " + reservations);
         Map<Long, Room> roomDetails = new HashMap<>();
         for (Reservation res : reservations) {
             if (res.getRoomId() != null) {
@@ -201,13 +205,18 @@ public class AdminController {
                 }
             }
         }
-        System.out.println("Room Details: " + roomDetails);
 
         model.addAttribute("hotel", hotel);
-        model.addAttribute("reservations", reservationService.getReservationsByHotelId(id));
+        model.addAttribute("reservations", reservations);
         model.addAttribute("roomDetails", roomDetails);
+
+        // <-- DODAJ TO: obiekt dla formularza w modalu
+        model.addAttribute("reservation", new Reservation());
+        // <-- DODAJ TO: lista pokoi do selecta w modalu
+        model.addAttribute("rooms", roomService.getRoomsByHotelId(id));
 
         return "admin_hotel_reservations";
     }
+
 
 }

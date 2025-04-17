@@ -16,6 +16,10 @@ public class HotelRepository {
         hotels = new ArrayList<>();
         hotels.add(new Hotel(currentId++, "Hotel Kraków", "Kraków", 10));
         hotels.add(new Hotel(currentId++, "Hotel Warszawa", "Warszawa", 5));
+        hotels.add(new Hotel(currentId++, "Hotel Wieliczka", "Wieliczka", 14));
+        hotels.add(new Hotel(currentId++, "Hotel Gdansk", "Gdansk", 7));
+        hotels.add(new Hotel(currentId++, "Hotel Wroclaw", "Wroclaw", 18));
+        hotels.add(new Hotel(currentId++, "Hotel Bochnia", "Bochnia", 3));
     }
 
     public List<Hotel> getAllHotels() {

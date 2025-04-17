@@ -44,4 +44,9 @@ public class AdminReservationController {
         }
         return "redirect:/admin/reservations";
     }
+    @PostMapping("/cancel/{id}")
+    public String cancel(@PathVariable("id") Long id) {
+        reservationService.deleteReservation(id);
+        return "redirect:/admin/reservations";
+    }
 }
