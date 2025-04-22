@@ -52,9 +52,16 @@
             <td th:text="${res.checkIn}"></td>
             <td th:text="${res.checkOut}"></td>
             <td>
+                <!-- Przycisk Edytuj -->
+                <a th:href="@{/admin/reservations/edit/{id}(id=${res.id})}"
+                   class="btn btn-sm btn-primary mr-1">
+                    Edytuj
+                </a>
+
+                <!-- Istniejący formularz Anuluj -->
                 <form th:action="@{/admin/hotels/{hotelId}/reservations/delete/{reservationId}(
-                    hotelId=${hotel.id},
-                    reservationId=${res.id})}"
+      hotelId=${hotel.id},
+      reservationId=${res.id})}"
                       method="post" style="display:inline">
                     <input type="hidden" th:name="${_csrf.parameterName}"
                            th:value="${_csrf.token}" />
@@ -64,11 +71,12 @@
                         Anuluj
                     </button>
                 </form>
-
             </td>
+
         </tr>
         </tbody>
     </table>
+
 </div>
 </body>
 </html>

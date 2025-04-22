@@ -11,11 +11,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
 public class ReservationService {
@@ -110,25 +114,44 @@ public class ReservationService {
         }
     }
 
-
-
+    @Transactional
     public void updateReservation(Reservation updatedReservation) {
         Reservation existing = reservationRepository.getReservationById(updatedReservation.getId());
         if (existing == null) {
             throw new RuntimeException("Rezerwacja nie znaleziona!");
         }
+        // Walidacja dat
         if (updatedReservation.getCheckIn().isAfter(updatedReservation.getCheckOut())) {
-            throw new RuntimeException("Data przyjazdu musi być wcześniejsza niż data wyjazdu!");
+            throw new RuntimeException("Nieprawidłowy zakres dat!");
         }
         if (updatedReservation.getCheckIn().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Data przyjazdu nie może być w przeszłości!");
+            throw new RuntimeException("Data przyjazdu w przeszłości!");
         }
-        if (existing != null) {
-            System.out.println("Aktualizacja roomId z " + existing.getRoomId() + " na " + updatedReservation.getRoomId());
-            existing.setRoomId(updatedReservation.getRoomId());
-            existing.setCheckIn(updatedReservation.getCheckIn());
-            existing.setCheckOut(updatedReservation.getCheckOut());
+
+        // Obliczamy liczbę dni przed i po zmianie
+        long oldDays = ChronoUnit.DAYS.between(existing.getCheckIn(), existing.getCheckOut());
+        long newDays = ChronoUnit.DAYS.between(
+                updatedReservation.getCheckIn(),
+                updatedReservation.getCheckOut()
+        );
+
+        // Korygujemy dostępność w hotelu
+        Hotel hotel = hotelRepository.getHotelById(existing.getHotelId());
+        if (hotel != null) {
+            // zwolnij poprzednie dni
+            hotel.setAvailableRooms(hotel.getAvailableRooms() + (int)oldDays);
+            // zarezerwuj nowe dni (sprawdź dostępność)
+            if (hotel.getAvailableRooms() < newDays) {
+                throw new RuntimeException("Brak dostępnych pokoi na nowe daty!");
+            }
+            hotel.setAvailableRooms(hotel.getAvailableRooms() - (int)newDays);
         }
+
+        // Zaktualizuj pola rezerwacji
+        existing.setCheckIn(updatedReservation.getCheckIn());
+        existing.setCheckOut(updatedReservation.getCheckOut());
+        existing.setRoomId(updatedReservation.getRoomId());
+        // w Twoim in‐memory repo nie trzeba save – mutujesz pobrany obiekt
     }
 
 

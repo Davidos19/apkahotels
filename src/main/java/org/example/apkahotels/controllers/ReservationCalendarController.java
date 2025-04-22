@@ -1,5 +1,6 @@
 package org.example.apkahotels.controllers;
 
+import lombok.Getter;
 import org.example.apkahotels.models.Reservation;
 import org.example.apkahotels.services.ReservationService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,11 +36,12 @@ public class ReservationCalendarController {
     }
 }
 
+@Getter
 class ReservationEvent {
-    private Long id;
-    private String title;
-    private String start;
-    private String end;
+    private final Long id;
+    private final String title;
+    private final String start;
+    private final String end;
 
     public ReservationEvent(Long id, String title, LocalDate checkIn, LocalDate checkOut) {
         this.id = id;
@@ -49,16 +51,4 @@ class ReservationEvent {
         this.end = checkOut.toString();
     }
 
-    public Long getId() {
-        return id;
-    }
-    public String getTitle() {
-        return title;
-    }
-    public String getStart() {
-        return start;
-    }
-    public String getEnd() {
-        return end;
-    }
 }
