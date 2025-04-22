@@ -6,6 +6,10 @@
 
     <title>Rezerwacje dla hotelu</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/cerulean/bootstrap.min.css">
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
 </head>
 <body>
 <div th:replace="~{fragments/nav :: nav}"></div>
@@ -19,6 +23,13 @@
         </a>
 
 
+</div>
+    <!-- NOWOŚĆ: przycisk toggle i kontener kalendarza -->
+    <div class="mb-4">
+        <button id="toggleCalendar" class="btn btn-info">Pokaż/Ukryj kalendarz</button>
+    </div>
+    <div id="calendarContainer" style="display: none; margin-bottom: 20px;">
+        <div id="calendar"></div>
     </div>
     <p>Lokalizacja: <span th:text="${hotel.location}"></span></p>
 
@@ -75,6 +86,48 @@
         </tr>
         </tbody>
     </table>
+
 </div>
+<!-- jQuery i Bootstrap JS (jeśli jeszcze nie są) -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // inicjalizacja kalendarza
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 600,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: {
+                url: '/api/reservations/calendar?hotelId=' + [[${hotel.id}]],
+                method: 'GET',
+                failure: function() {
+                    alert('Nie udało się pobrać rezerwacji!');
+                }
+            }
+        });
+        calendar.render();
+
+        // obsługa przycisku toggle
+        document.getElementById('toggleCalendar').addEventListener('click', function() {
+            var cont = document.getElementById('calendarContainer');
+            if (cont.style.display === 'none' || cont.style.display === '') {
+                cont.style.display = 'block';
+                calendar.updateSize();
+            } else {
+                cont.style.display = 'none';
+            }
+        });
+    });
+</script>
+</body>
+
 </body>
 </html>

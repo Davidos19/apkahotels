@@ -27,7 +27,21 @@ public class SecurityConfig {
                         .successHandler(new CustomAuthenticationSuccessHandler())
                         .permitAll()
                 )
-                .logout(logout -> logout.permitAll());
+                .rememberMe(rm -> rm
+                        .tokenValiditySeconds(7 * 24 * 60 * 60)
+                        .key("unikalnySekretnyKlucz")
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .sessionManagement(sess -> sess
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(true)
+                );
+
         return http.build();
     }
 
