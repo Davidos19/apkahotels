@@ -8,36 +8,31 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
-
 @Service
 public class UserService {
+    // lepiej ConcurrentHashMap, ale HashMap też zadziała
     private final Map<String, AppUser> userStore = new HashMap<>();
+
     public void registerUser(AppUser newUser) {
         userStore.put(newUser.getUsername(), newUser);
     }
+
     public AppUser getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
             return null;
         }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            UserDetails ud = (UserDetails) principal;
-            AppUser user = new AppUser();
-            user.setUsername(ud.getUsername());
-            // W przypadku InMemoryUserDetailsManager nie masz dodatkowych danych,
-            // więc ustawiamy domyślne wartości.
-            user.setEmail(ud.getUsername() + "@example.com");
-            user.setFirstName("Brak");
-            user.setLastName("Brak");
-            user.setPhoneNumber("Brak");
-            user.setProfileImageUrl("https://via.placeholder.com/150");
-            return user;
+
+        Object principal = auth.getPrincipal();
+        if (principal instanceof UserDetails ud) {
+            // zamiast tworzyć nowego z dummy‑danymi, pobieramy z mapy
+            return userStore.get(ud.getUsername());
         }
         return null;
     }
+
     public void updateUser(AppUser updatedUser) {
-        // Założenie: username się nie zmienia, więc możemy nadpisać wpis
         userStore.put(updatedUser.getUsername(), updatedUser);
     }
 }
+

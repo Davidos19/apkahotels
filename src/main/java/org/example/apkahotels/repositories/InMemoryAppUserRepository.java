@@ -6,24 +6,34 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class InMemoryAppUserRepository implements AppUserRepository {
 
     private final List<AppUser> users = new ArrayList<>();
+    private final AtomicLong idGen = new AtomicLong(1);
 
     @Override
     public AppUser findByUsername(String username) {
-        Optional<AppUser> user = users.stream()
+        return users.stream()
                 .filter(u -> u.getUsername().equalsIgnoreCase(username))
-                .findFirst();
-        return user.orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public AppUser save(AppUser user) {
-        // Możesz dodać logikę generowania ID, jeśli to potrzebne
+        // jeśli update (już istnieje), usuń starą wersję
+        users.removeIf(u -> u.getUsername().equalsIgnoreCase(user.getUsername()));
+
+        // jeśli nowy (bez ID), nadaj ID
+        if (user.getId() == null) {
+            user.setId(idGen.getAndIncrement());
+        }
+
         users.add(user);
         return user;
     }
 }
+
